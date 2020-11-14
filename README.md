@@ -649,6 +649,7 @@ end
 
 ### SW1
 ```
+SW1#sh vlan
 VLAN Name                             Status    Ports
 ---- -------------------------------- --------- -------------------------------
 1    default                          active    Fa0/6, Fa0/7, Fa0/8, Fa0/9
@@ -685,6 +686,7 @@ Primary Secondary Type              Ports
 
 ### SW2
 ```
+SW2#sh vlan
 VLAN Name                             Status    Ports
 ---- -------------------------------- --------- -------------------------------
 1    default                          active    Fa0/4, Fa0/6, Fa0/7, Fa0/8
@@ -724,13 +726,11 @@ Primary Secondary Type              Ports
 ### R1
 ```
 R1#sh ip ospf neigh
-
 Neighbor ID     Pri   State           Dead Time   Address         Interface
 172.31.170.66     0   FULL/  -        00:00:36    31.149.194.166  Serial0/1/1
 172.31.170.65     0   FULL/  -        00:00:30    31.149.194.162  Serial0/1/0
 
 R1#sh ipv6 ospf neigh
-
 Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
 172.31.170.66     0   FULL/  -        00:00:31    4               Serial0/1/1
 172.31.170.65     0   FULL/  -        00:00:35    3               Serial0/1/0
@@ -739,13 +739,11 @@ Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
 ### R2
 ```
 R2#sh ip ospf neigh
-
 Neighbor ID     Pri   State           Dead Time   Address         Interface
 172.31.170.66     1   FULL/DR         00:00:37    172.31.170.66   FastEthernet0/1
 31.149.194.165    0   FULL/  -        00:00:37    31.149.194.161  Serial0/1/0
 
 R2#sh ipv6 ospf neigh
-
 Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
 172.31.170.66     1   FULL/DR         00:00:31    1               FastEthernet0/1
 31.149.194.165    0   FULL/  -        00:00:31    3               Serial0/1/0
@@ -754,13 +752,11 @@ Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
 ### R3
 ```
 R3#sh ip ospf neigh
-
 Neighbor ID     Pri   State           Dead Time   Address         Interface
 172.31.170.65     1   FULL/BDR        00:00:31    172.31.170.65   FastEthernet0/0
 31.149.194.165    0   FULL/  -        00:00:31    31.149.194.165  Serial0/1/1
 
 R3#sh ipv6 ospf neigh
-
 Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
 172.31.170.65     1   FULL/BDR        00:00:34    2               FastEthernet0/0
 31.149.194.165    0   FULL/  -        00:00:34    4               Serial0/1/1
@@ -788,23 +784,176 @@ icmp 10.0.0.2:63       172.31.170.67:63   10.0.0.1:63        10.0.0.1:63
 
 ### Směrovací tabulka R1
 ```
+R1#sh ip route
+Codes: C - connected, S - static, I - IGRP, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
 
+Gateway of last resort is 10.0.0.1 to network 0.0.0.0
+
+     10.0.0.0/30 is subnetted, 1 subnets
+C       10.0.0.0 is directly connected, FastEthernet0/0
+     31.0.0.0/8 is variably subnetted, 4 subnets, 2 masks
+O       31.149.194.0/26 [110/65] via 31.149.194.166, 00:00:23, Serial0/1/1
+O       31.149.194.64/26 [110/65] via 31.149.194.162, 00:00:23, Serial0/1/0
+C       31.149.194.160/30 is directly connected, Serial0/1/0
+C       31.149.194.164/30 is directly connected, Serial0/1/1
+     172.31.0.0/26 is subnetted, 1 subnets
+O       172.31.170.64 [110/65] via 31.149.194.162, 00:00:23, Serial0/1/0
+                      [110/65] via 31.149.194.166, 00:00:23, Serial0/1/1
+S*   0.0.0.0/0 [1/0] via 10.0.0.1
+
+R1#sh ipv6 route
+IPv6 Routing Table - 11 entries
+Codes: C - Connected, L - Local, S - Static, R - RIP, B - BGP
+       U - Per-user Static route, M - MIPv6
+       I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea, IS - ISIS summary
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       O - OSPF intra, OI - OSPF inter, OE1 - OSPF ext 1, OE2 - OSPF ext 2
+       ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       D - EIGRP, EX - EIGRP external
+S   ::/0 [1/0]
+     via 2001:4492:F34B:5::1
+O   2001:4492:F34B::/64 [110/65]
+     via FE80::260:5CFF:FE73:CA01, Serial0/1/0
+     via FE80::2D0:FFFF:FEE2:D401, Serial0/1/1
+O   2001:4492:F34B:1::/64 [110/65]
+     via FE80::2D0:FFFF:FEE2:D401, Serial0/1/1
+O   2001:4492:F34B:2::/64 [110/65]
+     via FE80::260:5CFF:FE73:CA01, Serial0/1/0
+C   2001:4492:F34B:3::/64 [0/0]
+     via ::, Serial0/1/0
+L   2001:4492:F34B:3::1/128 [0/0]
+     via ::, Serial0/1/0
+C   2001:4492:F34B:4::/64 [0/0]
+     via ::, Serial0/1/1
+L   2001:4492:F34B:4::1/128 [0/0]
+     via ::, Serial0/1/1
+C   2001:4492:F34B:5::/64 [0/0]
+     via ::, FastEthernet0/0
+L   2001:4492:F34B:5::2/128 [0/0]
+     via ::, FastEthernet0/0
+L   FF00::/8 [0/0]
+     via ::, Null0
 ```
 
 ### Směrovací tabulka R2
 ```
+R2#sh ip route
+Codes: C - connected, S - static, I - IGRP, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
 
+Gateway of last resort is 31.149.194.161 to network 0.0.0.0
+
+     31.0.0.0/8 is variably subnetted, 4 subnets, 2 masks
+O       31.149.194.0/26 [110/2] via 172.31.170.66, 00:00:35, FastEthernet0/1
+C       31.149.194.64/26 is directly connected, FastEthernet0/0
+C       31.149.194.160/30 is directly connected, Serial0/1/0
+O       31.149.194.164/30 [110/65] via 172.31.170.66, 00:00:35, FastEthernet0/1
+     172.31.0.0/26 is subnetted, 1 subnets
+C       172.31.170.64 is directly connected, FastEthernet0/1
+O*E2 0.0.0.0/0 [110/1] via 31.149.194.161, 00:01:15, Serial0/1/0
+
+R2#sh ipv6 route
+IPv6 Routing Table - 11 entries
+Codes: C - Connected, L - Local, S - Static, R - RIP, B - BGP
+       U - Per-user Static route, M - MIPv6
+       I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea, IS - ISIS summary
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       O - OSPF intra, OI - OSPF inter, OE1 - OSPF ext 1, OE2 - OSPF ext 2
+       ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       D - EIGRP, EX - EIGRP external
+OE2 ::/0 [110/1]
+     via FE80::2E0:F9FF:FE1D:8501, Serial0/1/0
+C   2001:4492:F34B::/64 [0/0]
+     via ::, FastEthernet0/1
+L   2001:4492:F34B::1/128 [0/0]
+     via ::, FastEthernet0/1
+O   2001:4492:F34B:1::/64 [110/2]
+     via FE80::2D0:FFFF:FEE2:D401, FastEthernet0/1
+C   2001:4492:F34B:2::/64 [0/0]
+     via ::, FastEthernet0/0
+L   2001:4492:F34B:2::1/128 [0/0]
+     via ::, FastEthernet0/0
+C   2001:4492:F34B:3::/64 [0/0]
+     via ::, Serial0/1/0
+L   2001:4492:F34B:3::2/128 [0/0]
+     via ::, Serial0/1/0
+O   2001:4492:F34B:4::/64 [110/65]
+     via FE80::2D0:FFFF:FEE2:D401, FastEthernet0/1
+OE2 2001:4492:F34B:5::/64 [110/1]
+     via FE80::2E0:F9FF:FE1D:8501, Serial0/1/0
+L   FF00::/8 [0/0]
+     via ::, Null0
 ```
 
 ### Směrovací tabulka R3
 ```
+R3#sh ip route
+Codes: C - connected, S - static, I - IGRP, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
 
+Gateway of last resort is 31.149.194.165 to network 0.0.0.0
+
+     31.0.0.0/8 is variably subnetted, 4 subnets, 2 masks
+C       31.149.194.0/26 is directly connected, FastEthernet0/1
+O       31.149.194.64/26 [110/2] via 172.31.170.65, 00:02:54, FastEthernet0/0
+O       31.149.194.160/30 [110/65] via 172.31.170.65, 00:02:54, FastEthernet0/0
+C       31.149.194.164/30 is directly connected, Serial0/1/1
+     172.31.0.0/26 is subnetted, 1 subnets
+C       172.31.170.64 is directly connected, FastEthernet0/0
+O*E2 0.0.0.0/0 [110/1] via 31.149.194.165, 00:03:34, Serial0/1/1
+
+R3#sh ipv6 route
+IPv6 Routing Table - 11 entries
+Codes: C - Connected, L - Local, S - Static, R - RIP, B - BGP
+       U - Per-user Static route, M - MIPv6
+       I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea, IS - ISIS summary
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       O - OSPF intra, OI - OSPF inter, OE1 - OSPF ext 1, OE2 - OSPF ext 2
+       ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       D - EIGRP, EX - EIGRP external
+OE2 ::/0 [110/1]
+     via FE80::2E0:F9FF:FE1D:8501, Serial0/1/1
+C   2001:4492:F34B::/64 [0/0]
+     via ::, FastEthernet0/0
+L   2001:4492:F34B::2/128 [0/0]
+     via ::, FastEthernet0/0
+C   2001:4492:F34B:1::/64 [0/0]
+     via ::, FastEthernet0/1
+L   2001:4492:F34B:1::1/128 [0/0]
+     via ::, FastEthernet0/1
+O   2001:4492:F34B:2::/64 [110/2]
+     via FE80::260:5CFF:FE73:CA02, FastEthernet0/0
+O   2001:4492:F34B:3::/64 [110/65]
+     via FE80::260:5CFF:FE73:CA02, FastEthernet0/0
+C   2001:4492:F34B:4::/64 [0/0]
+     via ::, Serial0/1/1
+L   2001:4492:F34B:4::2/128 [0/0]
+     via ::, Serial0/1/1
+OE2 2001:4492:F34B:5::/64 [110/1]
+     via FE80::2E0:F9FF:FE1D:8501, Serial0/1/1
+L   FF00::/8 [0/0]
+     via ::, Null0
 ```
 
 ## 6. Výpis cest pro IPv6 na R3 (viz minulý bod, show ipv6 route)
 ```
 R3#sh ipv6 route
-
 IPv6 Routing Table - 11 entries
 Codes: C - Connected, L - Local, S - Static, R - RIP, B - BGP
        U - Per-user Static route, M - MIPv6
