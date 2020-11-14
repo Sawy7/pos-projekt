@@ -6,7 +6,105 @@
 - OSPF očividně preferuje delší, zato ethernetovou (10/100) cestu
 - Musím nastavit desc na portech ✔️
 
-## Plánek v PT
+## 1. Výpisy konfigurace aktivních prvků
+
+### ISP Router
+```
+
+```
+
+### R1
+```
+
+```
+
+### R2
+```
+
+```
+
+### R3
+```
+
+```
+
+### SW1
+```
+
+```
+
+### SW2
+```
+
+```
+
+## 2. Výpisy konfigurace VLANů na přepínačích
+
+### SW1
+```
+
+```
+
+### SW2
+```
+
+```
+
+## 3. Sousedi na 2./3. vrstvě OSI-RM (show ip/ipv6 ospf neigh)
+
+### R1
+```
+
+```
+
+### R2
+```
+
+```
+
+### R3
+```
+
+```
+
+## 4. Výsledek úspěšného překladu NAT (vnitřní na vnější rozhraní)
+```
+
+```
+
+## 5. Data směrovacího protokolu na 1 z rozhraní R2, počet naučených záznamů ve směrovacích tabulkách na jednotlivých směrovačích
+
+### Rozhraní na R2
+```
+
+```
+
+### Směrovací tabulka R1
+```
+
+```
+
+### Směrovací tabulka R2
+```
+
+```
+
+### Směrovací tabulka R3
+```
+
+```
+
+## 6. Výpis cest pro IPv6 na R3 (viz minulý bod, show ipv6 route)
+```
+
+```
+
+## 7. Výsledek příkazu ping a traceroute na router/server poskytovatele
+```
+
+```
+
+## Všechny příkazy:
 
 ### ISP Router
 ```
