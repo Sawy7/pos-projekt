@@ -1,41 +1,648 @@
 # Praktická část
 
 ## Poznámky
-
-- Je nutné nastavit NAT na R1
-- OSPF očividně preferuje delší, zato ethernetovou (10/100) cestu
-- Musím nastavit desc na portech ✔️
+- Když je jeden router DHCP server, tak další nemusí obsahovat žádný DHCP config, žejo?
 
 ## 1. Výpisy konfigurace aktivních prvků
 
 ### ISP Router
 ```
+Building configuration...
 
+Current configuration : 676 bytes
+!
+version 12.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname ISP
+!
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ description pripojeni do firemni site
+ ip address 10.0.0.1 255.255.255.252
+ duplex auto
+ speed auto
+ ipv6 address 2001:4492:F34B:5::1/64
+ ipv6 address 2001:4492:f34b: 5::1/64
+!
+interface FastEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+!
+ip flow-export version 9
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
 ```
 
 ### R1
 ```
+Building configuration...
 
+Current configuration : 1652 bytes
+!
+version 12.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R1
+!
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+ipv6 unicast-routing
+!
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ description pripojeni do internetu (isp)
+ ip address 10.0.0.2 255.255.255.252
+ ip nat outside
+ duplex auto
+ speed auto
+ ipv6 address 2001:4492:F34B:5::2/64
+!
+interface FastEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/1/0
+ description propojeni s routerem R2
+ ip address 31.149.194.161 255.255.255.252
+ ip nat inside
+ ipv6 address 2001:4492:F34B:3::1/64
+ ipv6 ospf 2 area 0
+ clock rate 64000
+!
+interface Serial0/1/1
+ description propojeni s routerem R3
+ ip address 31.149.194.165 255.255.255.252
+ ip nat inside
+ ipv6 address 2001:4492:F34B:4::1/64
+ ipv6 ospf 2 area 0
+ clock rate 64000
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1
+ log-adjacency-changes
+ passive-interface FastEthernet0/0
+ network 31.149.194.160 0.0.0.3 area 0
+ network 31.149.194.164 0.0.0.3 area 0
+ default-information originate
+!
+ipv6 router ospf 2
+ default-information originate
+ log-adjacency-changes
+ redistribute connected metric 1 
+ passive-interface FastEthernet0/0
+!
+ip nat pool vlan_A_NAT 31.149.194.129 31.149.194.158 netmask 255.255.255.224
+ip nat inside source list 1 interface FastEthernet0/0 overload
+ip classless
+ip route 0.0.0.0 0.0.0.0 10.0.0.1 
+!
+ip flow-export version 9
+!
+ipv6 route ::/0 2001:4492:F34B:5::1
+!
+access-list 1 permit 172.31.170.64 0.0.0.63
+!
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
 ```
 
 ### R2
 ```
+Building configuration...
 
+Current configuration : 1424 bytes
+!
+version 12.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R2
+!
+!
+!
+!
+ip dhcp excluded-address 172.31.170.65 172.31.170.66
+!
+ip dhcp pool vlanA
+ network 172.31.170.64 255.255.255.192
+ default-router 172.31.170.65
+ dns-server 31.149.194.126
+!
+!
+!
+no ip cef
+ipv6 unicast-routing
+!
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ description propojeni do segmentu S1
+ ip address 31.149.194.65 255.255.255.192
+ duplex auto
+ speed auto
+ ipv6 address 2001:4492:F34B:2::1/64
+ ipv6 ospf 2 area 0
+!
+interface FastEthernet0/1
+ description propojeni do VLAN A
+ ip address 172.31.170.65 255.255.255.192
+ duplex auto
+ speed auto
+ ipv6 address 2001:4492:F34B::1/64
+ ipv6 ospf 2 area 0
+!
+interface Serial0/1/0
+ description propojeni s routerem R1
+ ip address 31.149.194.162 255.255.255.252
+ ipv6 address 2001:4492:F34B:3::2/64
+ ipv6 ospf 2 area 0
+!
+interface Serial0/1/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1
+ log-adjacency-changes
+ network 31.149.194.160 0.0.0.3 area 0
+ network 31.149.194.64 0.0.0.63 area 0
+ network 172.31.170.64 0.0.0.63 area 0
+!
+ipv6 router ospf 2
+ log-adjacency-changes
+ redistribute connected metric 1 
+!
+ip classless
+!
+ip flow-export version 9
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
 ```
 
 ### R3
 ```
+Building configuration...
 
+Current configuration : 1249 bytes
+!
+version 12.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R3
+!
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+ipv6 unicast-routing
+!
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ description propojeni do VLAN A
+ ip address 172.31.170.66 255.255.255.192
+ duplex auto
+ speed auto
+ ipv6 address 2001:4492:F34B::2/64
+ ipv6 ospf 2 area 0
+!
+interface FastEthernet0/1
+ description propojeni do VLAN B
+ ip address 31.149.194.1 255.255.255.192
+ duplex auto
+ speed auto
+ ipv6 address 2001:4492:F34B:1::1/64
+ ipv6 ospf 2 area 0
+!
+interface Serial0/1/0
+ description propojeni s routerem R1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Serial0/1/1
+ ip address 31.149.194.166 255.255.255.252
+ ipv6 address 2001:4492:F34B:4::2/64
+ ipv6 ospf 2 area 0
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1
+ log-adjacency-changes
+ network 31.149.194.164 0.0.0.3 area 0
+ network 172.31.170.64 0.0.0.63 area 0
+ network 31.149.194.0 0.0.0.63 area 0
+!
+ipv6 router ospf 2
+ log-adjacency-changes
+ redistribute connected metric 1 
+!
+ip classless
+!
+ip flow-export version 9
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
 ```
 
 ### SW1
 ```
+Building configuration...
 
+Current configuration : 1540 bytes
+!
+version 12.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname SW1
+!
+!
+!
+!
+vtp mode transparent
+!
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+vlan 24
+ name A
+!
+vlan 97
+ name B
+!
+interface FastEthernet0/1
+ description propojeni s routerem R3 na VLAN A
+ switchport access vlan 24
+ switchport mode access
+!
+interface FastEthernet0/2
+ description PC1A na VLAN A
+ switchport access vlan 24
+ switchport mode access
+!
+interface FastEthernet0/3
+ description propojeni s routerem R3 na VLAN B
+ switchport access vlan 97
+ switchport mode access
+!
+interface FastEthernet0/4
+ description PC1B na VLAN A
+ switchport access vlan 97
+ switchport mode access
+!
+interface FastEthernet0/5
+ description trunk mezi SW1 a SW2 (VLAN A a VLAN B)
+ switchport trunk allowed vlan 24,97
+ switchport mode trunk
+!
+interface FastEthernet0/6
+!
+interface FastEthernet0/7
+!
+interface FastEthernet0/8
+!
+interface FastEthernet0/9
+!
+interface FastEthernet0/10
+!
+interface FastEthernet0/11
+!
+interface FastEthernet0/12
+!
+interface FastEthernet0/13
+!
+interface FastEthernet0/14
+!
+interface FastEthernet0/15
+!
+interface FastEthernet0/16
+!
+interface FastEthernet0/17
+!
+interface FastEthernet0/18
+!
+interface FastEthernet0/19
+!
+interface FastEthernet0/20
+!
+interface FastEthernet0/21
+!
+interface FastEthernet0/22
+!
+interface FastEthernet0/23
+!
+interface FastEthernet0/24
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+!
+!
+!
+line con 0
+!
+line vty 0 4
+ login
+line vty 5 15
+ login
+!
+!
+!
+!
+end
 ```
 
 ### SW2
 ```
+Building configuration...
 
+Current configuration : 1442 bytes
+!
+version 12.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname SW2
+!
+!
+!
+!
+vtp mode transparent
+!
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+vlan 24
+ name A
+!
+vlan 97
+ name B
+!
+interface FastEthernet0/1
+ description propojeni s routerem R2 na VLAN A
+ switchport access vlan 24
+ switchport mode access
+!
+interface FastEthernet0/2
+ description PC2A na VLAN A
+ switchport access vlan 24
+ switchport mode access
+!
+interface FastEthernet0/3
+ description PC2B na VLAN B
+ switchport access vlan 97
+ switchport mode access
+!
+interface FastEthernet0/4
+!
+interface FastEthernet0/5
+ description trunk mezi SW1 a SW2 (VLAN A a VLAN B)
+ switchport trunk allowed vlan 24,97
+ switchport mode trunk
+!
+interface FastEthernet0/6
+!
+interface FastEthernet0/7
+!
+interface FastEthernet0/8
+!
+interface FastEthernet0/9
+!
+interface FastEthernet0/10
+!
+interface FastEthernet0/11
+!
+interface FastEthernet0/12
+!
+interface FastEthernet0/13
+!
+interface FastEthernet0/14
+!
+interface FastEthernet0/15
+!
+interface FastEthernet0/16
+!
+interface FastEthernet0/17
+!
+interface FastEthernet0/18
+!
+interface FastEthernet0/19
+!
+interface FastEthernet0/20
+!
+interface FastEthernet0/21
+!
+interface FastEthernet0/22
+!
+interface FastEthernet0/23
+!
+interface FastEthernet0/24
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+!
+!
+!
+line con 0
+!
+line vty 0 4
+ login
+line vty 5 15
+ login
+!
+!
+!
+!
+end
 ```
 
 ## 2. Výpisy konfigurace VLANů na přepínačích
@@ -116,22 +723,60 @@ Primary Secondary Type              Ports
 
 ### R1
 ```
+R1#sh ip ospf neigh
 
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+172.31.170.66     0   FULL/  -        00:00:36    31.149.194.166  Serial0/1/1
+172.31.170.65     0   FULL/  -        00:00:30    31.149.194.162  Serial0/1/0
+
+R1#sh ipv6 ospf neigh
+
+Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
+172.31.170.66     0   FULL/  -        00:00:31    4               Serial0/1/1
+172.31.170.65     0   FULL/  -        00:00:35    3               Serial0/1/0
 ```
 
 ### R2
 ```
+R2#sh ip ospf neigh
 
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+172.31.170.66     1   FULL/DR         00:00:37    172.31.170.66   FastEthernet0/1
+31.149.194.165    0   FULL/  -        00:00:37    31.149.194.161  Serial0/1/0
+
+R2#sh ipv6 ospf neigh
+
+Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
+172.31.170.66     1   FULL/DR         00:00:31    1               FastEthernet0/1
+31.149.194.165    0   FULL/  -        00:00:31    3               Serial0/1/0
 ```
 
 ### R3
 ```
+R3#sh ip ospf neigh
 
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+172.31.170.65     1   FULL/BDR        00:00:31    172.31.170.65   FastEthernet0/0
+31.149.194.165    0   FULL/  -        00:00:31    31.149.194.165  Serial0/1/1
+
+R3#sh ipv6 ospf neigh
+
+Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
+172.31.170.65     1   FULL/BDR        00:00:34    2               FastEthernet0/0
+31.149.194.165    0   FULL/  -        00:00:34    4               Serial0/1/1
 ```
 
-## 4. Výsledek úspěšného překladu NAT (vnitřní na vnější rozhraní)
+## 4. Výsledek úspěšného překladu NAT (vnitřní na vnější rozhraní) (po pingu z PC2A)
 ```
-
+R1#sh ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 10.0.0.2:57       172.31.170.67:57   10.0.0.1:57        10.0.0.1:57
+icmp 10.0.0.2:58       172.31.170.67:58   10.0.0.1:58        10.0.0.1:58
+icmp 10.0.0.2:59       172.31.170.67:59   10.0.0.1:59        10.0.0.1:59
+icmp 10.0.0.2:60       172.31.170.67:60   10.0.0.1:60        10.0.0.1:60
+icmp 10.0.0.2:61       172.31.170.67:61   10.0.0.1:61        10.0.0.1:61
+icmp 10.0.0.2:62       172.31.170.67:62   10.0.0.1:62        10.0.0.1:62
+icmp 10.0.0.2:63       172.31.170.67:63   10.0.0.1:63        10.0.0.1:63
 ```
 
 ## 5. Data směrovacího protokolu na 1 z rozhraní R2, počet naučených záznamů ve směrovacích tabulkách na jednotlivých směrovačích
@@ -158,12 +803,65 @@ Primary Secondary Type              Ports
 
 ## 6. Výpis cest pro IPv6 na R3 (viz minulý bod, show ipv6 route)
 ```
+R3#sh ipv6 route
 
+IPv6 Routing Table - 11 entries
+Codes: C - Connected, L - Local, S - Static, R - RIP, B - BGP
+       U - Per-user Static route, M - MIPv6
+       I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea, IS - ISIS summary
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       O - OSPF intra, OI - OSPF inter, OE1 - OSPF ext 1, OE2 - OSPF ext 2
+       ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       D - EIGRP, EX - EIGRP external
+OE2 ::/0 [110/1]
+     via FE80::2E0:F9FF:FE1D:8501, Serial0/1/1
+C   2001:4492:F34B::/64 [0/0]
+     via ::, FastEthernet0/0
+L   2001:4492:F34B::2/128 [0/0]
+     via ::, FastEthernet0/0
+C   2001:4492:F34B:1::/64 [0/0]
+     via ::, FastEthernet0/1
+L   2001:4492:F34B:1::1/128 [0/0]
+     via ::, FastEthernet0/1
+O   2001:4492:F34B:2::/64 [110/2]
+     via FE80::260:5CFF:FE73:CA02, FastEthernet0/0
+O   2001:4492:F34B:3::/64 [110/65]
+     via FE80::260:5CFF:FE73:CA02, FastEthernet0/0
+C   2001:4492:F34B:4::/64 [0/0]
+     via ::, Serial0/1/1
+L   2001:4492:F34B:4::2/128 [0/0]
+     via ::, Serial0/1/1
+OE2 2001:4492:F34B:5::/64 [110/1]
+     via FE80::2E0:F9FF:FE1D:8501, Serial0/1/1
+L   FF00::/8 [0/0]
+     via ::, Null0
 ```
 
-## 7. Výsledek příkazu ping a traceroute na router/server poskytovatele
+## 7. Výsledek příkazu ping a traceroute na router/server poskytovatele (PC2A)
 ```
+C:\>ping 10.0.0.1
 
+Pinging 10.0.0.1 with 32 bytes of data:
+
+Reply from 10.0.0.1: bytes=32 time=18ms TTL=253
+Reply from 10.0.0.1: bytes=32 time=11ms TTL=253
+Reply from 10.0.0.1: bytes=32 time=2ms TTL=253
+Reply from 10.0.0.1: bytes=32 time=1ms TTL=253
+
+Ping statistics for 10.0.0.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 1ms, Maximum = 18ms, Average = 8ms
+
+C:\>tracert 10.0.0.1
+
+Tracing route to 10.0.0.1 over a maximum of 30 hops: 
+
+  1   1 ms      0 ms      0 ms      172.31.170.65
+  2   12 ms     6 ms      0 ms      31.149.194.161
+  3   1 ms      1 ms      1 ms      10.0.0.1
+
+Trace complete.
 ```
 
 ## Všechny příkazy:
@@ -188,11 +886,29 @@ enable
 conf t
 hostname R1
 
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+router ospf 1
+network 31.149.194.160 0.0.0.3 area 0
+network 31.149.194.164 0.0.0.3 area 0
+passive-interface fa0/0
+default-information originate
+exit
+
+ipv6 unicast-routing
+
+ipv6 route ::/0 2001:4492:f34b:5::1
+ipv6 router ospf 2
+redistribute connected metric 1
+default-information originate
+passive-interface fa0/0
+exit
+
 interface fa0/0
 ip address 10.0.0.2 255.255.255.252
 ipv6 address 2001:4492:f34b:0005::2/64
 no shutdown
 description pripojeni do internetu (isp)
+ip nat outside
 exit
 
 interface se0/1/0
@@ -201,6 +917,8 @@ ipv6 address 2001:4492:f34b:0003::1/64
 clock rate 64000
 no shutdown
 description propojeni s routerem R2
+ip nat inside
+ipv6 ospf 2 area 0
 exit
 
 interface se0/1/1
@@ -209,15 +927,13 @@ ipv6 address 2001:4492:f34b:0004::1/64
 clock rate 64000
 no shutdown
 description propojeni s routerem R3
+ip nat inside
+ipv6 ospf 2 area 0
 exit
 
-ip route 0.0.0.0 0.0.0.0 10.0.0.1
-router ospf 1
-network 31.149.194.160 0.0.0.3 area 0
-network 31.149.194.164 0.0.0.3 area 0
-passive-interface fa0/0
-default-information originate
-exit
+ip nat pool vlan_A_NAT 31.149.194.129 31.149.194.158 netmask 255.255.255.224
+ip nat inside source list 1 interface fa0/0 overload
+access-list 1 permit 172.31.170.64 0.0.0.63
 ```
 
 ### R2
@@ -226,12 +942,25 @@ enable
 conf t
 hostname R2
 
+router ospf 1
+network 31.149.194.160 0.0.0.3 area 0
+network 31.149.194.64 0.0.0.63 area 0
+network 172.31.170.64 0.0.0.63 area 0
+exit
+
+ipv6 unicast-routing
+
+ipv6 router ospf 2
+redistribute connected metric 1
+exit
+
 interface se0/1/0
 ip address 31.149.194.162 255.255.255.252
 ipv6 address 2001:4492:f34b:0003::2/64
 clock rate 64000
 no shutdown
 description propojeni s routerem R1
+ipv6 ospf 2 area 0
 exit
 
 interface fa0/0
@@ -239,6 +968,7 @@ ip address 31.149.194.65 255.255.255.192
 ipv6 address 2001:4492:f34b:0002::1/64
 no shutdown
 description propojeni do segmentu S1
+ipv6 ospf 2 area 0
 exit
 
 interface fa0/1
@@ -246,13 +976,16 @@ ip address 172.31.170.65 255.255.255.192
 ipv6 address 2001:4492:f34b:0000::1/64
 no shutdown
 description propojeni do VLAN A
+ipv6 ospf 2 area 0
 exit
 
-router ospf 1
-network 31.149.194.160 0.0.0.3 area 0
-network 31.149.194.64 0.0.0.63 area 0
-network 172.31.170.64 0.0.0.63 area 0
+ip dhcp pool vlanA
+network 172.31.170.64 255.255.255.192
+default-router 172.31.170.65
+dns-server 31.149.194.126
 exit
+
+ip dhcp excluded-addr 172.31.170.65 172.31.170.66
 ```
 
 ### R3
@@ -261,12 +994,25 @@ enable
 conf t
 hostname R3
 
+router ospf 1
+network 31.149.194.164 0.0.0.3 area 0
+network 172.31.170.64 0.0.0.63 area 0
+network 31.149.194.0 0.0.0.63 area 0
+exit
+
+ipv6 unicast-routing
+
+ipv6 router ospf 2
+redistribute connected metric 1
+exit
+
 interface se0/1/1
 ip address 31.149.194.166 255.255.255.252
 ipv6 address 2001:4492:f34b:0004::2/64
 clock rate 64000
 no shutdown
 description propojeni s routerem R1
+ipv6 ospf 2 area 0
 exit
 
 interface fa0/0
@@ -274,6 +1020,7 @@ ip address 172.31.170.66 255.255.255.192
 ipv6 address 2001:4492:f34b:0000::2/64
 no shutdown
 description propojeni do VLAN A
+ipv6 ospf 2 area 0
 exit
 
 interface fa0/1
@@ -281,12 +1028,7 @@ ip address 31.149.194.1 255.255.255.192
 ipv6 address 2001:4492:f34b:0001::1/64
 no shutdown
 description propojeni do VLAN B
-exit
-
-router ospf 1
-network 31.149.194.164 0.0.0.3 area 0
-network 172.31.170.64 0.0.0.63 area 0
-network 31.149.194.0 0.0.0.63 area 0
+ipv6 ospf 2 area 0
 exit
 ```
 
