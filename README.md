@@ -209,7 +209,7 @@ end
 ```
 Building configuration...
 
-Current configuration : 1424 bytes
+Current configuration : 1459 bytes
 !
 version 12.4
 no service timestamps log datetime msec
@@ -286,6 +286,7 @@ interface Vlan1
 !
 router ospf 1
  log-adjacency-changes
+ passive-interface FastEthernet0/0
  network 31.149.194.160 0.0.0.3 area 0
  network 31.149.194.64 0.0.0.63 area 0
  network 172.31.170.64 0.0.0.63 area 0
@@ -1095,6 +1096,7 @@ router ospf 1
 network 31.149.194.160 0.0.0.3 area 0
 network 31.149.194.64 0.0.0.63 area 0
 network 172.31.170.64 0.0.0.63 area 0
+passive-interface fa0/0
 exit
 
 ipv6 unicast-routing
