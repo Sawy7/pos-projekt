@@ -1258,7 +1258,7 @@ exit
 
 ## PC1A
 ```
-DHCP (to be done)
+DHCP
 ```
 
 ## PC1B
@@ -1315,7 +1315,7 @@ exit
 
 ## PC2A
 ```
-DHCP (to be done)
+DHCP
 ```
 
 ## PC2B
