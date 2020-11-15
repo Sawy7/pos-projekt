@@ -209,7 +209,7 @@ end
 ```
 Building configuration...
 
-Current configuration : 1459 bytes
+Current configuration : 1494 bytes
 !
 version 12.4
 no service timestamps log datetime msec
@@ -294,6 +294,7 @@ router ospf 1
 ipv6 router ospf 2
  log-adjacency-changes
  redistribute connected metric 1 
+ passive-interface FastEthernet0/0
 !
 ip classless
 !
@@ -778,9 +779,22 @@ icmp 10.0.0.2:63       172.31.170.67:63   10.0.0.1:63        10.0.0.1:63
 
 ## 5. Data směrovacího protokolu na 1 z rozhraní R2, počet naučených záznamů ve směrovacích tabulkách na jednotlivých směrovačích
 
-### Rozhraní na R2
+### Rozhraní na R2 (se0/1/0)
 ```
-
+R2#show ip ospf interface se0/1/0
+Serial0/1/0 is up, line protocol is up
+  Internet address is 31.149.194.162/30, Area 0
+  Process ID 1, Router ID 172.31.170.65, Network Type POINT-TO-POINT, Cost: 64
+  Transmit Delay is 1 sec, State POINT-TO-POINT,
+  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
+    Hello due in 00:00:01
+  Index 3/3, flood queue length 0
+  Next 0x0(0)/0x0(0)
+  Last flood scan length is 1, maximum is 1
+  Last flood scan time is 0 msec, maximum is 0 msec
+  Neighbor Count is 1 , Adjacent neighbor count is 1
+    Adjacent with neighbor 31.149.194.165
+  Suppress hello for 0 neighbor(s)
 ```
 
 ### Směrovací tabulka R1
@@ -1103,6 +1117,7 @@ ipv6 unicast-routing
 
 ipv6 router ospf 2
 redistribute connected metric 1
+passive-interface fa0/0
 exit
 
 interface se0/1/0
