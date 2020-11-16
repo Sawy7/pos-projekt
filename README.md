@@ -9,7 +9,7 @@
 ```
 Building configuration...
 
-Current configuration : 676 bytes
+Current configuration : 796 bytes
 !
 version 12.4
 no service timestamps log datetime msec
@@ -26,6 +26,8 @@ hostname ISP
 !
 !
 ip cef
+ipv6 unicast-routing
+!
 no ipv6 cef
 !
 !
@@ -65,9 +67,11 @@ interface Vlan1
  shutdown
 !
 ip classless
+ip route 31.149.194.0 255.255.254.0 10.0.0.2 
 !
 ip flow-export version 9
 !
+ipv6 route 2001:4492:F34B::/48 2001:4492:F34B:5::2
 !
 !
 !
@@ -180,7 +184,7 @@ ipv6 router ospf 2
 ip nat pool vlan_A_NAT 31.149.194.129 31.149.194.158 netmask 255.255.255.224
 ip nat inside source list 1 interface FastEthernet0/0 overload
 ip classless
-ip route 0.0.0.0 0.0.0.0 10.0.0.1 
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
 !
 ip flow-export version 9
 !
@@ -1036,6 +1040,10 @@ enable
 conf t
 hostname ISP
 
+ipv6 unicast-routing
+ip route 31.149.194.0 255.255.254.0 10.0.0.2
+ipv6 route 2001:4492:f34b::/48 2001:4492:F34B:5::2
+
 interface fa0/0
 ip address 10.0.0.1 255.255.255.252
 ipv6 address 2001:4492:f34b:0005::1/64
@@ -1208,6 +1216,8 @@ DNS Server: 127.0.0.1 (localhost)
 IPv6 Address: 2001:4492:f34b:0002:ffff:ffff:ffff:ffff/64
 Default Gateway: 2001:4492:f34b:0002::1
 DNS Server: ::1 (localhost)
+
+DNS Service: On
 ```
 
 ### SW1
