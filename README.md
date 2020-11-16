@@ -9,7 +9,7 @@
 ```
 Building configuration...
 
-Current configuration : 796 bytes
+Current configuration : 758 bytes
 !
 version 12.4
 no service timestamps log datetime msec
@@ -54,7 +54,6 @@ interface FastEthernet0/0
  duplex auto
  speed auto
  ipv6 address 2001:4492:F34B:5::1/64
- ipv6 address 2001:4492:f34b: 5::1/64
 !
 interface FastEthernet0/1
  no ip address
