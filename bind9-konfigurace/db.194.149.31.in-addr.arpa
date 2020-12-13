@@ -1,0 +1,24 @@
+$ORIGIN 194.149.31.in-addr.arpa.
+$TTL	604800
+
+194.149.31.in-addr.arpa.	IN	SOA	ns.mohje.isp.cz.	root.ns.mohje.isp.cz. (
+	1
+	604800
+	86400
+	2419200
+	604800
+	)
+
+	NS	ns.mohje.isp.cz.
+	
+$ORIGIN 194.149.31.in-addr.arpa.
+
+126		PTR	ns.mohje.isp.cz. 
+161		PTR	R-1-se010.mohje.isp.cz.
+165		PTR	R-1-se011.mohje.isp.cz.
+
+65		PTR	R-2-fa00.mohje.isp.cz.
+162		PTR R-2-se010.mohje.isp.cz.
+
+1		PTR R-3-fa01.mohje.isp.cz.
+166		PTR R-3-se011.mohje.isp.cz.

@@ -1,0 +1,35 @@
+$ORIGIN isp.cz.
+
+$TTL 604800
+
+mohje IN SOA  ns.mohje adminmohje.isp.cz. (
+        2003092414
+        604800
+        86400
+        2419200
+        604800
+        )
+
+$ORIGIN mohje.isp.cz.
+
+                        NS      ns
+ns                      A       31.149.194.126
+                        AAAA    2001:4492:F34B:2:FFFF:FFFF:FFFF:FFFF
+                        TXT     "DNS server (PC3-S1)"
+
+R-1-se010               A       31.149.194.161
+R-1-se010               AAAA    2001:4492:F34B:3::1
+R-1-se011               A       31.149.194.165
+R-1-se011               AAAA    2001:4492:F34B:4::1
+
+R-2-fa00                A       31.149.194.65
+R-2-fa00                AAAA    2001:4492:F34B:2::1
+R-2-se010               A       31.149.194.162
+R-2-se010               AAAA    2001:4492:F34B:3::2
+R-2-fa01                AAAA    2001:4492:F34B::1
+
+R-3-fa01                A       31.149.194.1
+R-3-fa01                AAAA    2001:4492:F34B:1::1
+R-3-se011               A       31.149.194.166
+R-3-se011               AAAA    2001:4492:F34B:4::2
+R-3-fa00                AAAA    2001:4492:F34B::2
